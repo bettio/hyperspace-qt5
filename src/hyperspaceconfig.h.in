@@ -1,0 +1,15 @@
+#ifndef HYPERSPACE_HYPERSPACESTATICCONFIG_H
+#define HYPERSPACE_HYPERSPACESTATICCONFIG_H
+
+namespace Hyperspace {
+
+namespace StaticConfig {
+
+constexpr QLatin1String hyperspaceDataDir() { return QLatin1String("@INSTALL_DATA_DIR@"); }
+constexpr QLatin1String sourceDirectory() { return QLatin1String("@CMAKE_SOURCE_DIR@"); }
+
+}
+
+}
+
+#endif

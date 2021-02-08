@@ -1,0 +1,80 @@
+
+if (CMAKE_VERSION VERSION_LESS 2.8.9)
+    message(FATAL_ERROR "HyperspaceQt5 requires at least CMake version 2.8.9")
+endif()
+
+if (NOT HyperspaceQt5_FIND_COMPONENTS)
+    set(HyperspaceQt5_NOT_FOUND_MESSAGE "The HyperspaceQt5 package requires at least one component")
+    set(HyperspaceQt5_FOUND False)
+    return()
+endif()
+
+set(_HyperspaceQt5_FIND_PARTS_REQUIRED)
+if (HyperspaceQt5_FIND_REQUIRED)
+    set(_HyperspaceQt5_FIND_PARTS_REQUIRED REQUIRED)
+endif()
+set(_HyperspaceQt5_FIND_PARTS_QUIET)
+if (HyperspaceQt5_FIND_QUIETLY)
+    set(_HyperspaceQt5_FIND_PARTS_QUIET QUIET)
+endif()
+
+get_filename_component(_hemera_qt_sdk_install_prefix "${CMAKE_CURRENT_LIST_DIR}/.." ABSOLUTE)
+
+set(_HyperspaceQt5_NOTFOUND_MESSAGE)
+
+foreach(module ${HyperspaceQt5_FIND_COMPONENTS})
+    find_package(HyperspaceQt5${module}
+        ${_HyperspaceQt5_FIND_PARTS_QUIET}
+        ${_HyperspaceQt5_FIND_PARTS_REQUIRED}
+        PATHS "${_hemera_qt_sdk_install_prefix}" NO_DEFAULT_PATH
+    )
+    if (NOT HyperspaceQt5${module}_FOUND)
+        if (HyperspaceQt5_FIND_REQUIRED_${module})
+            set(_HyperspaceQt5_NOTFOUND_MESSAGE "${_HyperspaceQt5_NOTFOUND_MESSAGE}Failed to find HyperspaceQt5 component \"${module}\" config file at \"${_hemera_qt_sdk_install_prefix}/HyperspaceQt5${module}/HyperspaceQt5${module}Config.cmake\"\n")
+        elseif(NOT HyperspaceQt5_FIND_QUIETLY)
+            message(WARNING "Failed to find HyperspaceQt5 component \"${module}\" config file at \"${_hemera_qt_sdk_install_prefix}/HyperspaceQt5${module}/HyperspaceQt5${module}Config.cmake\"")
+        endif()
+    endif()
+endforeach()
+
+if (_HyperspaceQt5_NOTFOUND_MESSAGE)
+    set(HyperspaceQt5_NOT_FOUND_MESSAGE "${_HyperspaceQt5_NOTFOUND_MESSAGE}")
+    set(HyperspaceQt5_FOUND False)
+endif()
+
+# Macros
+include("${CMAKE_CURRENT_LIST_DIR}/HyperspacePaths.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/HyperspaceMacros.cmake")
+
+macro(hyperspace_qt5_use_modules _target _link_type)
+    if (NOT TARGET ${_target})
+        message(FATAL_ERROR "The first argument to hyperspace_qt5_use_modules must be an existing target.")
+    endif()
+    if ("${_link_type}" STREQUAL "LINK_PUBLIC" OR "${_link_type}" STREQUAL "LINK_PRIVATE" )
+        set(_hyperspace_qt5_modules ${ARGN})
+        set(_hyperspace_qt5_link_type ${_link_type})
+    else()
+        set(_hyperspace_qt5_modules ${_link_type} ${ARGN})
+    endif()
+
+    if ("${_hyperspace_qt5_modules}" STREQUAL "")
+        message(FATAL_ERROR "hyperspace_qt5_use_modules requires at least one Hemera Qt SDK module to use.")
+    endif()
+
+    foreach(_module ${_hyperspace_qt5_modules})
+        if (NOT HyperspaceQt5${_module}_FOUND)
+            find_package(HyperspaceQt5${_module} PATHS "${_HyperspaceQt5_COMPONENT_PATH}" NO_DEFAULT_PATH)
+            if (NOT HyperspaceQt5${_module}_FOUND)
+                message(FATAL_ERROR "Can not use \"${_module}\" module which has not yet been found.")
+            endif()
+        endif()
+        target_link_libraries(${_target} ${_hyperspace_qt5_link_type} ${HyperspaceQt5${_module}_LIBRARIES})
+        set_property(TARGET ${_target} APPEND PROPERTY INCLUDE_DIRECTORIES ${HyperspaceQt5${_module}_INCLUDE_DIRS})
+        set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS ${HyperspaceQt5${_module}_COMPILE_DEFINITIONS})
+        set_property(TARGET ${_target} APPEND PROPERTY COMPILE_DEFINITIONS_RELEASE QT_NO_DEBUG)
+
+        if (HyperspaceQt5_POSITION_INDEPENDENT_CODE)
+            set_property(TARGET ${_target} PROPERTY POSITION_INDEPENDENT_CODE ${HyperspaceQt5_POSITION_INDEPENDENT_CODE})
+        endif()
+    endforeach()
+endmacro()

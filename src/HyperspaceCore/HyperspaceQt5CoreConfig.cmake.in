@@ -1,0 +1,73 @@
+
+if (CMAKE_VERSION VERSION_LESS 2.8.3)
+    message(FATAL_ERROR "Hyperspace Qt5 Core requires at least CMake version 2.8.3")
+endif()
+
+get_filename_component(_hyperspaceQt5Core_install_prefix @CMAKE_INSTALL_PREFIX@ ABSOLUTE)
+
+# For backwards compatibility only. Use HyperspaceQt5Core_VERSION instead.
+set(HyperspaceQt5Core_VERSION_STRING @HYPERSPACE_QT5_VERSION@)
+
+set(HyperspaceQt5Core_LIBRARIES HyperspaceQt5::Core)
+
+if (NOT TARGET HyperspaceQt5::Core)
+
+    set(_HyperspaceQt5Core_OWN_INCLUDE_DIRS @CORE_INCLUDE_DIRS@)
+    set(HyperspaceQt5Core_INCLUDE_DIRS ${_HyperspaceQt5Core_OWN_INCLUDE_DIRS})
+
+    set(HyperspaceQt5Core_DEFINITIONS "")
+    set(HyperspaceQt5Core_COMPILE_DEFINITIONS "")
+
+    set(_HyperspaceQt5Core_MODULE_DEPENDENCIES "")
+
+    set(_HyperspaceQt5Core_FIND_DEPENDENCIES_REQUIRED)
+    if (HyperspaceQt5Core_FIND_REQUIRED)
+        set(_HyperspaceQt5Core_FIND_DEPENDENCIES_REQUIRED REQUIRED)
+    endif()
+    set(_HyperspaceQt5Core_FIND_DEPENDENCIES_QUIET)
+    if (HyperspaceQt5Core_FIND_QUIETLY)
+        set(_HyperspaceQt5Core_DEPENDENCIES_FIND_QUIET QUIET)
+    endif()
+    set(_HyperspaceQt5Core_FIND_VERSION_EXACT)
+    if (HyperspaceQt5Core_FIND_VERSION_EXACT)
+        set(_HyperspaceQt5Core_FIND_VERSION_EXACT EXACT)
+    endif()
+
+    foreach(_module_dep ${_HyperspaceQt5Core_MODULE_DEPENDENCIES})
+        if (NOT HyperspaceQt5${_module_dep}_FOUND)
+            find_package(HyperspaceQt5${_module_dep}
+                ${HyperspaceQt5Core_VERSION_STRING} ${_HyperspaceQt5Core_FIND_VERSION_EXACT}
+                ${_HyperspaceQt5Core_DEPENDENCIES_FIND_QUIET}
+                ${_HyperspaceQt5Core_FIND_DEPENDENCIES_REQUIRED}
+                PATHS "${CMAKE_CURRENT_LIST_DIR}/.." NO_DEFAULT_PATH
+            )
+        endif()
+
+        if (NOT HyperspaceQt5${_module_dep}_FOUND)
+            set(HyperspaceQt5Core_FOUND False)
+            return()
+        endif()
+
+        list(APPEND HyperspaceQt5Core_INCLUDE_DIRS "${HyperspaceQt5${_module_dep}_INCLUDE_DIRS}")
+        list(APPEND HyperspaceQt5Core_DEFINITIONS ${HyperspaceQt5${_module_dep}_DEFINITIONS})
+        list(APPEND HyperspaceQt5Core_COMPILE_DEFINITIONS ${HyperspaceQt5${_module_dep}_COMPILE_DEFINITIONS})
+        list(APPEND HyperspaceQt5Core_EXECUTABLE_COMPILE_FLAGS ${HyperspaceQt5${_module_dep}_EXECUTABLE_COMPILE_FLAGS})
+    endforeach()
+    list(REMOVE_DUPLICATES HyperspaceQt5Core_INCLUDE_DIRS)
+    list(REMOVE_DUPLICATES HyperspaceQt5Core_DEFINITIONS)
+    list(REMOVE_DUPLICATES HyperspaceQt5Core_COMPILE_DEFINITIONS)
+    if (HyperspaceQt5Core_EXECUTABLE_COMPILE_FLAGS)
+        list(REMOVE_DUPLICATES HyperspaceQt5Core_EXECUTABLE_COMPILE_FLAGS)
+    endif()
+
+    set(_HyperspaceQt5Core_LIB_DEPENDENCIES "HemeraQt5SDK::Core Qt5::Core Qt5::Network")
+
+    # Target management
+    include("${CMAKE_CURRENT_LIST_DIR}/HyperspaceQt5CoreTargets.cmake")
+
+    set_property(TARGET HyperspaceQt5::Core PROPERTY
+        INTERFACE_INCLUDE_DIRECTORIES ${_HyperspaceQt5Core_OWN_INCLUDE_DIRS})
+    set_property(TARGET HyperspaceQt5::Core PROPERTY
+        INTERFACE_COMPILE_DEFINITIONS ${HyperspaceQt5Core_COMPILE_DEFINITIONS})
+
+endif()

@@ -1,0 +1,5 @@
+# - Path file for Hemera SDK
+# Defines locations of needed paths
+
+set(HYPERSPACE_INTERFACES_DIR "@INSTALL_INTERFACES_DIR@")
+set(HYPERSPACE_TOOLS_DIR "@INSTALL_BIN_DIR@")

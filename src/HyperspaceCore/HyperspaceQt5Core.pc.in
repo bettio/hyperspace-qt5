@@ -1,0 +1,11 @@
+prefix=@CMAKE_INSTALL_PREFIX@
+exec_prefix=${prefix}
+libdir=@INSTALL_LIB_DIR@
+includedir=@INSTALL_INCLUDE_DIR@/HyperspaceQt5
+
+Name: HyperspaceQt5 Core
+Description: HyperspaceQt5 Core module
+Version: @HYPERSPACE_QT5_VERSION@
+Libs: -L${libdir} -lHyperspaceQt5Core
+Cflags: -I${includedir}/HyperspaceQt5 -I${includedir}
+Requires: Qt5Core >= 5.1.0 Qt5Network >= 5.1.0 HemeraQt5SDKCore >= 0.6.0
